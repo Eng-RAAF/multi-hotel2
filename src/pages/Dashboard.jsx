@@ -5,7 +5,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { api } from "../lib/api";
 import { useScope } from "../context/AppContext";
 import { errorMessage, monthStart, todayISO } from "../lib/format";
-import { Badge, Button, Empty, Loading, Modal, PageHeader, Panel, Stat } from "../components/ui";
+import { Badge, Button, Empty, ErrorText, Loading, Modal, PageHeader, Panel, Stat } from "../components/ui";
 
 const PAGE_ROLES = {
   "/hotels": ["super_admin", "hotel_manager"],
