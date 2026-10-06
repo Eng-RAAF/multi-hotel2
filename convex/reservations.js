@@ -70,7 +70,7 @@ export const desk = query({
     const decorated = rows.map((row) => decorate(row, lookup));
     return {
       today,
-      arrivals: decorated.filter((row) => row.checkIn === today && ["pending", "confirmed"].includes(row.status)),
+      arrivals: decorated.filter((row) => row.checkIn <= today && ["pending", "confirmed"].includes(row.status)),
       inHouse: decorated.filter((row) => row.status === "checked_in"),
       departures: decorated.filter((row) => row.status === "checked_in" && row.checkOut <= today),
     };

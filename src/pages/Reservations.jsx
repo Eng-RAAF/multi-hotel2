@@ -15,6 +15,7 @@ export default function Reservations() {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
   const [form, setForm] = useState(blank(hotelId, hotels));
   const guestArgs = form.hotelId ? { token, hotelId: form.hotelId } : "skip";
   const guests = useQuery(api.guests.list, open ? guestArgs : "skip");
@@ -25,6 +26,15 @@ export default function Reservations() {
   const set = (key) => (event) => setForm({ ...form, [key]: event.target.value });
   const nights = nightsBetween(form.checkIn, form.checkOut);
   const room = (rooms || []).find((item) => item._id === form.roomId);
+
+  async function arrive(row) {
+    setActionError("");
+    try {
+      await checkIn({ token, reservationId: row._id });
+    } catch (err) {
+      setActionError(errorMessage(err));
+    }
+  }
 
   async function submit(event) {
     event.preventDefault();
@@ -53,7 +63,10 @@ export default function Reservations() {
     <div>
       <PageHeader title={t("reservations")} action={<Button onClick={() => { setForm(blank(hotelId, hotels)); setError(""); setOpen(true); }}>{t("addReservation")}</Button>} />
       <Panel>
-        <div className="border-b border-slate-100 p-4"><SearchBox value={query} onChange={setQuery} placeholder={t("search")} /></div>
+        <div className="border-b border-slate-100 p-4">
+          <SearchBox value={query} onChange={setQuery} placeholder={t("search")} />
+          <ErrorText>{actionError}</ErrorText>
+        </div>
         {filtered.length ? (
           <Table
             rowKey={(row) => row._id}
@@ -64,7 +77,7 @@ export default function Reservations() {
               { key: "dates", header: t("date"), cell: (row) => `${row.checkIn} → ${row.checkOut}` },
               { key: "total", header: t("total"), cell: (row) => money(row.total) },
               { key: "status", header: t("status"), cell: (row) => <Badge value={row.status} /> },
-              { key: "actions", header: "", cell: (row) => ["pending", "confirmed"].includes(row.status) ? <Button variant="secondary" onClick={() => checkIn({ token, reservationId: row._id })}>{t("checkIn")}</Button> : null },
+              { key: "actions", header: "", cell: (row) => ["pending", "confirmed"].includes(row.status) ? <Button variant="secondary" onClick={() => arrive(row)}>{t("checkIn")}</Button> : null },
             ]}
           />
         ) : <Empty title={t("noResults")} />}

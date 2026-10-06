@@ -45,12 +45,3 @@ export const ROLES = [
   { id: "housekeeping", label: "Housekeeping" },
   { id: "hr_admin", label: "HR / Admin" },
 ];
-
-export const DEMO_ACCOUNTS = [
-  ["Amina Yusuf", "admin@mhmas.so", "Admin@123", "Super Administrator"],
-  ["Hassan Ali", "manager@mhmas.so", "Manager@123", "Hotel Manager"],
-  ["Hodan Mohamed", "reception@mhmas.so", "Reception@123", "Receptionist"],
-  ["Abdi Nur", "accountant@mhmas.so", "Accountant@123", "Accountant"],
-  ["Fadumo Warsame", "house@mhmas.so", "House@123", "Housekeeping"],
-  ["Sahra Omar", "hr@mhmas.so", "Hr@123", "HR / Admin"],
-];

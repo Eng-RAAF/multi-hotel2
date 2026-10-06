@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useQuery } from "convex/react";
-import { Link } from "react-router-dom";
+import { useMutation, useQuery } from "convex/react";
+import { Link, useNavigate } from "react-router-dom";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { api } from "../lib/api";
 import { useScope } from "../context/AppContext";
-import { monthStart, todayISO } from "../lib/format";
+import { errorMessage, monthStart, todayISO } from "../lib/format";
 import { Badge, Button, Empty, Loading, Modal, PageHeader, Panel, Stat } from "../components/ui";
 
 const PAGE_ROLES = {
@@ -155,6 +155,9 @@ function StayList({ rows, empty, onOpen }) {
 
 function Detail({ detail, onClose, args }) {
   const { t, token, user } = useScope();
+  const navigate = useNavigate();
+  const checkIn = useMutation(api.reservations.checkIn);
+  const [actionError, setActionError] = useState("");
   const hotelArgs = detail.hotel ? { token, hotelId: detail.hotel._id } : args;
   const needsRooms = ["rooms", "occupied", "occupancy", "cleaning", "maintenance", "hotel"].includes(detail.kind);
   const needsBooks = ["month", "expenses", "profit", "hotel"].includes(detail.kind);
@@ -218,11 +221,26 @@ function Detail({ detail, onClose, args }) {
         bills={bills}
         report={report}
       />
-      {link && PAGE_ROLES[link]?.includes(user?.role) ? (
-        <div className="mt-4">
-          <Link to={link} onClick={onClose}><Button>{t("view")}</Button></Link>
-        </div>
-      ) : null}
+      <ErrorText>{actionError}</ErrorText>
+      <div className="mt-4 flex gap-2">
+        {detail.kind === "stay" && ["pending", "confirmed"].includes(detail.stay?.status) ? (
+          <Button onClick={async () => {
+            setActionError("");
+            try {
+              await checkIn({ token, reservationId: detail.stay._id });
+              onClose();
+            } catch (err) {
+              setActionError(errorMessage(err));
+            }
+          }}>{t("checkIn")}</Button>
+        ) : null}
+        {detail.kind === "stay" && detail.stay?.status === "checked_in" ? (
+          <Button onClick={() => { onClose(); navigate("/front-desk", { state: { checkoutId: detail.stay._id } }); }}>{t("checkOut")}</Button>
+        ) : null}
+        {link && PAGE_ROLES[link]?.includes(user?.role) ? (
+          <Link to={link} onClick={onClose}><Button variant="secondary">{t("view")}</Button></Link>
+        ) : null}
+      </div>
     </Modal>
   );
 }

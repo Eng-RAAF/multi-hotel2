@@ -1,18 +1,15 @@
 import { useState } from "react";
-import { useAction, useQuery } from "convex/react";
+import { useAction } from "convex/react";
 import { api } from "../lib/api";
 import { useApp } from "../context/AppContext";
-import { DEMO_ACCOUNTS } from "../lib/catalogs";
 import { errorMessage } from "../lib/format";
 import { Button, ErrorText, Input } from "../components/ui";
 
 export default function Login() {
   const { t, lang, setLang, signIn } = useApp();
-  const initialized = useQuery(api.auth.initialized);
   const login = useAction(api.authNode.login);
-  const seed = useAction(api.seedNode.seed);
-  const [email, setEmail] = useState("admin@mhmas.so");
-  const [password, setPassword] = useState("Admin@123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -23,18 +20,6 @@ export default function Login() {
     try {
       const result = await login({ email, password });
       await signIn(result.token);
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function loadDemo() {
-    setBusy(true);
-    setError("");
-    try {
-      await seed({});
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -71,37 +56,15 @@ export default function Login() {
           <form onSubmit={submit} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <label className="block space-y-1.5 text-sm font-medium">
               {t("email")}
-              <Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+              <Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="username" required />
             </label>
             <label className="block space-y-1.5 text-sm font-medium">
               {t("password")}
-              <Input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required />
+              <Input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" required />
             </label>
             <ErrorText>{error}</ErrorText>
             <Button type="submit" className="w-full" disabled={busy}>{busy ? t("working") : t("signIn")}</Button>
-            {initialized === false ? (
-              <Button variant="secondary" className="w-full" disabled={busy} onClick={loadDemo}>{t("loadDemo")}</Button>
-            ) : null}
           </form>
-          <div className="mt-5">
-            <div className="mb-2 text-sm font-semibold">{t("demoAccounts")}</div>
-            <div className="grid gap-2">
-              {DEMO_ACCOUNTS.map(([name, accountEmail, accountPassword, role]) => (
-                <button
-                  key={accountEmail}
-                  onClick={() => {
-                    setEmail(accountEmail);
-                    setPassword(accountPassword);
-                  }}
-                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm hover:border-brand"
-                >
-                  <span className="font-semibold">{name}</span>
-                  <span className="block text-xs text-muted">{role} · {accountEmail} · {accountPassword}</span>
-                </button>
-              ))}
-            </div>
-            {initialized === false ? <p className="mt-3 text-xs text-muted">{t("initializeHint")}</p> : <p className="mt-3 text-xs text-muted">{t("demoReady")}</p>}
-          </div>
         </div>
       </section>
     </div>
