@@ -103,9 +103,9 @@ export function Modal({ title, onClose, children, wide = false }) {
   );
 }
 
-export function Stat({ label, value, hint }) {
+export function Stat({ label, value, hint, className = "" }) {
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
+    <div className={`rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm ${className}`}>
       <div className="text-sm text-muted">{label}</div>
       <div className="mt-2 text-2xl font-bold tracking-tight text-ink">{value}</div>
       {hint ? <div className="mt-1 text-xs text-muted">{hint}</div> : null}
