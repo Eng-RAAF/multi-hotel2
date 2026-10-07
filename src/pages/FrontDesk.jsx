@@ -15,10 +15,22 @@ function billFor(stay, extras, hotel) {
   const extra = (extras || [])
     .filter((item) => item.description && Number(item.amount) > 0)
     .reduce((sum, item) => sum + Number(item.amount), 0);
-  const subtotal = roundMoney(Number(stay?.total || 0) + extra);
-  const tax = roundMoney(subtotal * Number(hotel?.taxRate || 0) / 100);
-  const service = roundMoney(subtotal * Number(hotel?.serviceCharge || 0) / 100);
-  return { subtotal, tax, service, total: roundMoney(subtotal + tax + service) };
+  const taxRate = Number(hotel?.taxRate || 0);
+  const serviceRate = Number(hotel?.serviceCharge || 0);
+  const nightly = Number(stay?.nightlyRate || 0);
+  const nights = Number(stay?.dueNights || 0);
+  let tax = 0;
+  let service = 0;
+  for (let index = 0; index < nights; index += 1) {
+    tax = roundMoney(tax + roundMoney(nightly * taxRate / 100));
+    service = roundMoney(service + roundMoney(nightly * serviceRate / 100));
+  }
+  tax = roundMoney(tax + roundMoney(extra * taxRate / 100));
+  service = roundMoney(service + roundMoney(extra * serviceRate / 100));
+  const subtotal = roundMoney(nightly * nights + extra);
+  const fresh = roundMoney(subtotal + tax + service);
+  const already = roundMoney(stay?.openBalance || 0);
+  return { subtotal, tax, service, fresh, already, total: roundMoney(fresh + already) };
 }
 
 function tomorrowISO() {
@@ -112,7 +124,8 @@ export default function FrontDesk() {
         reference: "",
       });
       setStay(null);
-      navigate(`/invoices/${invoiceId}`);
+      if (invoiceId) navigate(`/invoices/${invoiceId}`);
+      else setNotice(`${stay.guestName} · Room ${stay.roomNumber}`);
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -154,7 +167,7 @@ export default function FrontDesk() {
     <div>
       <PageHeader
         title={t("frontDesk")}
-        subtitle={desk.today}
+        subtitle={`${desk.today} · ${t("roomChargeTime")}`}
         action={<Button onClick={() => { setWalkForm(blankWalk(hotelId, hotels)); setError(""); setWalkOpen(true); }}>{t("walkIn")}</Button>}
       />
       <ErrorText>{!stay && !walkOpen ? error : ""}</ErrorText>
@@ -169,7 +182,9 @@ export default function FrontDesk() {
           <form onSubmit={depart} className="space-y-3">
             <div className="rounded-xl bg-slate-50 p-3 text-sm">
               <div>Room {stay.roomNumber} · {stay.checkIn} → {stay.checkOut}</div>
-              <div className="mt-2 flex justify-between"><span>{t("subtotal")}</span><span>{money(bill.subtotal)}</span></div>
+              <p className="mt-1 text-xs text-muted">{t("roomChargeTime")}</p>
+              <div className="mt-2 flex justify-between"><span>{t("roomPosted")} · {stay.postedNights || 0}</span><span>{money(bill.already)}</span></div>
+              <div className="flex justify-between"><span>{t("subtotal")}</span><span>{money(bill.subtotal)}</span></div>
               <div className="flex justify-between"><span>{t("tax")} ({hotel?.taxRate || 0}%)</span><span>{money(bill.tax)}</span></div>
               <div className="flex justify-between"><span>{t("serviceCharge")} ({hotel?.serviceCharge || 0}%)</span><span>{money(bill.service)}</span></div>
               <div className="mt-1 flex justify-between font-semibold"><span>{t("total")}</span><span>{money(bill.total)}</span></div>

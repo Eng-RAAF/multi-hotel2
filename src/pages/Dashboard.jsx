@@ -45,6 +45,14 @@ export default function Dashboard() {
           hint={`${data.available} ${t("available").toLowerCase()}`}
           onClick={() => setDetail({ kind: "occupancy" })}
         />
+        {!housekeeping ? (
+          <ClickStat
+            label={t("overnight")}
+            value={data.overnightCount}
+            hint={`${t("restaurantDue")} · ${money(data.restaurantDue)}`}
+            onClick={() => setDetail({ kind: "overnight", rows: data.overnightGuests })}
+          />
+        ) : null}
         {data.showFinancials ? (
           <>
             <ClickStat label={t("todayRevenue")} value={money(data.todayRevenue)} onClick={() => setDetail({ kind: "today" })} />
@@ -111,6 +119,13 @@ export default function Dashboard() {
       ) : null}
 
       {!housekeeping ? (
+        <Panel className="mt-4">
+          <h2 className="border-b border-slate-100 px-4 py-3 font-semibold">{t("overnight")}</h2>
+          <OvernightList rows={data.overnightGuests || []} empty={t("noResults")} money={money} dueLabel={t("restaurantDue")} />
+        </Panel>
+      ) : null}
+
+      {!housekeeping ? (
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <Panel>
             <h2 className="border-b border-slate-100 px-4 py-3 font-semibold">{t("checkIns")}</h2>
@@ -133,6 +148,26 @@ function ClickStat({ onClick, ...props }) {
     <button type="button" onClick={onClick} className="rounded-2xl text-left transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-brand/40">
       <Stat {...props} className="h-full" />
     </button>
+  );
+}
+
+function OvernightList({ rows, empty, money, dueLabel }) {
+  if (!rows.length) return <div className="px-4 py-8 text-sm text-muted">{empty}</div>;
+  return (
+    <div className="divide-y divide-slate-100">
+      {rows.map((row) => (
+        <div key={row._id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+          <div>
+            <div className="font-medium">{row.guestName}</div>
+            <div className="text-xs text-muted">{row.hotelName} · Room {row.roomNumber} · {row.checkIn} → {row.checkOut}</div>
+          </div>
+          <div className="text-right">
+            <div className="font-semibold">{money(row.restaurantDue)}</div>
+            <div className="text-xs text-muted">{dueLabel}</div>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -185,6 +220,7 @@ function Detail({ detail, onClose, args }) {
     profit: t("profit"),
     receivables: t("receivables"),
     payables: t("payables"),
+    overnight: t("overnight"),
     cleaning: t("cleaning"),
     maintenance: t("maintenance"),
     stay: detail.stay?.guestName || t("guest"),
@@ -248,6 +284,28 @@ function Detail({ detail, onClose, args }) {
 function DetailBody({ detail, hotels, rooms, payments, income, expenses, receivables, bills, report }) {
   const { t, money } = useScope();
   const monthKey = detail.monthKey || monthStart().slice(0, 7);
+
+  if (detail.kind === "overnight") {
+    const rows = detail.rows || [];
+    if (!rows.length) return <Empty title={t("noResults")} />;
+    return (
+      <div className="divide-y divide-slate-100">
+        {rows.map((row) => (
+          <div key={row._id} className="flex items-center justify-between gap-3 py-3 text-sm">
+            <div>
+              <div className="font-medium">{row.guestName}</div>
+              <div className="text-xs text-muted">{row.hotelName} · Room {row.roomNumber}</div>
+              <div className="text-xs text-muted">{row.checkIn} → {row.checkOut}</div>
+            </div>
+            <div className="text-right">
+              <div className="font-semibold">{money(row.restaurantDue)}</div>
+              <div className="text-xs text-muted">{t("restaurantDue")}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   if (detail.kind === "stay") {
     const stay = detail.stay;

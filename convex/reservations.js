@@ -1,7 +1,9 @@
 import { mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 import { assertRole, requireHotel, requireUser, resolveHotel, writeAudit } from "./lib/auth";
-import { createInvoice } from "./lib/billing";
+import { createInvoice, recordPayment } from "./lib/billing";
+import { roundMoney } from "./lib/accounting";
+import { dueNights, postRoomNight, unchargedNights } from "./lib/roomCharge";
 import { nightsBetween, todayISO } from "./lib/dates";
 
 const OPEN = ["pending", "confirmed", "checked_in"];
@@ -67,7 +69,24 @@ export const desk = query({
       ? await ctx.db.query("reservations").withIndex("by_hotel", (q) => q.eq("hotelId", hotelId)).collect()
       : await ctx.db.query("reservations").collect();
     const lookup = await maps(ctx);
-    const decorated = rows.map((row) => decorate(row, lookup));
+    const [charges, invoices] = await Promise.all([
+      ctx.db.query("roomCharges").collect(),
+      ctx.db.query("invoices").collect(),
+    ]);
+    const decorated = rows.map((row) => {
+      const posted = new Set(charges.filter((charge) => charge.reservationId === row._id).map((charge) => charge.night));
+      const due = dueNights(row.checkIn, today, true).filter((night) => !posted.has(night));
+      const openBalance = invoices
+        .filter((invoice) => invoice.reservationId === row._id && invoice.status !== "cancelled" && invoice.status !== "paid")
+        .reduce((sum, invoice) => sum + (invoice.total - invoice.paid), 0);
+      return {
+        ...decorate(row, lookup),
+        postedNights: posted.size,
+        dueNights: due.length,
+        dueAmount: roundMoney(due.length * (row.nightlyRate || 0)),
+        openBalance: roundMoney(openBalance),
+      };
+    });
     return {
       today,
       arrivals: decorated.filter((row) => row.checkIn <= today && ["pending", "confirmed"].includes(row.status)),
@@ -213,33 +232,57 @@ export const checkOut = mutation({
     const guest = await ctx.db.get(reservation.guestId);
     const room = await ctx.db.get(reservation.roomId);
     if (!hotel || !guest || !room) throw new ConvexError("Stay details are incomplete");
-    const items = [
-      {
-        description: `Room ${room.number} · ${room.typeName} · ${reservation.nights} night(s)`,
-        quantity: reservation.nights,
-        unitPrice: reservation.nightlyRate,
-        accountCode: "4000",
-      },
-      ...args.extraItems.filter((item) => item.description.trim() && Number(item.amount) > 0).map((item) => ({
-        description: item.description.trim(),
-        quantity: 1,
-        unitPrice: Number(item.amount),
-        accountCode: item.accountCode || "4200",
-      })),
-    ];
-    const invoice = await createInvoice(ctx, {
-      hotel,
-      guestId: guest._id,
-      reservationId: reservation._id,
-      items,
-      date: todayISO(),
-      notes: reservation.notes,
-      user,
-      billTo: guest.fullName,
-      paymentAmount: Number(args.paymentAmount || 0),
-      method: args.method || "cash",
-      reference: args.reference,
-    });
+    const today = todayISO();
+    const nights = await unchargedNights(ctx, reservation, today, true);
+    let invoiceId = null;
+    for (const night of nights) {
+      invoiceId = await postRoomNight(ctx, reservation, night) || invoiceId;
+    }
+    const extras = args.extraItems.filter((item) => item.description.trim() && Number(item.amount) > 0).map((item) => ({
+      description: item.description.trim(),
+      quantity: 1,
+      unitPrice: Number(item.amount),
+      accountCode: item.accountCode || "4200",
+    }));
+    if (extras.length) {
+      const extraInvoice = await createInvoice(ctx, {
+        hotel,
+        guestId: guest._id,
+        reservationId: reservation._id,
+        items: extras,
+        date: today,
+        notes: reservation.notes,
+        user,
+        billTo: guest.fullName,
+        paymentAmount: 0,
+        method: args.method || "cash",
+      });
+      invoiceId = extraInvoice._id;
+    }
+    const open = (await ctx.db.query("invoices").collect())
+      .filter((invoice) => invoice.reservationId === reservation._id && invoice.status !== "cancelled" && invoice.paid < invoice.total)
+      .sort((a, b) => a.date.localeCompare(b.date) || a.number.localeCompare(b.number));
+    const balance = roundMoney(open.reduce((sum, invoice) => sum + (invoice.total - invoice.paid), 0));
+    let remaining = roundMoney(Number(args.paymentAmount || 0));
+    if (remaining - balance > 0.001) throw new ConvexError("Payment is higher than the balance due");
+    for (const invoice of open) {
+      if (remaining <= 0) break;
+      const current = await ctx.db.get(invoice._id);
+      const due = roundMoney(current.total - current.paid);
+      if (due <= 0) continue;
+      const amount = Math.min(remaining, due);
+      await recordPayment(ctx, {
+        invoice: current,
+        amount,
+        method: args.method || "cash",
+        date: today,
+        reference: args.reference,
+        user,
+        type: "payment",
+      });
+      remaining = roundMoney(remaining - amount);
+      invoiceId = current._id;
+    }
     await ctx.db.patch(reservation._id, { status: "checked_out", checkedOutAt: Date.now() });
     await ctx.db.patch(room._id, { status: "cleaning", housekeepingStatus: "dirty" });
     await writeAudit(ctx, {
@@ -248,8 +291,8 @@ export const checkOut = mutation({
       entity: "reservation",
       entityId: reservation._id,
       hotelId: reservation.hotelId,
-      details: `${guest.fullName} · ${invoice.number}`,
+      details: `${guest.fullName} · room ${room.number}`,
     });
-    return invoice._id;
+    return invoiceId;
   },
 });

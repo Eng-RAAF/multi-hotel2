@@ -2,7 +2,7 @@ import { query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireUser, resolveHotel } from "./lib/auth";
 import { roundMoney } from "./lib/accounting";
-import { lastMonthKeys, monthStart, todayISO } from "./lib/dates";
+import { addDays, lastMonthKeys, monthStart, todayISO } from "./lib/dates";
 
 function inHotel(row, hotelId) {
   return !hotelId || row.hotelId === hotelId;
@@ -55,7 +55,39 @@ export const summary = query({
     const todayRevenue = payments
       .filter((payment) => inHotel(payment, hotelId) && payment.date === today)
       .reduce((sum, payment) => sum + (payment.type === "refund" ? -payment.amount : payment.amount), 0);
-    const invoices = await ctx.db.query("invoices").collect();
+    const [invoices, invoiceItems] = await Promise.all([
+      ctx.db.query("invoices").collect(),
+      ctx.db.query("invoiceItems").collect(),
+    ]);
+    const yesterday = addDays(today, -1);
+    const showRestaurant = ["super_admin", "hotel_manager", "accountant", "receptionist"].includes(user.role);
+    const overnightGuests = scopedReservations
+      .filter((row) => row.checkIn <= yesterday && row.checkOut > yesterday && ["checked_in", "checked_out"].includes(row.status))
+      .map((reservation) => {
+        const related = invoices.filter((invoice) => {
+          if (invoice.status === "cancelled" || !inHotel(invoice, hotelId)) return false;
+          if (invoice.reservationId) return invoice.reservationId === reservation._id;
+          return invoice.guestId === reservation.guestId && invoice.date >= reservation.checkIn && invoice.date <= reservation.checkOut;
+        });
+        let restaurant = 0;
+        let due = 0;
+        for (const invoice of related) {
+          const amount = invoiceItems
+            .filter((item) => item.invoiceId === invoice._id && item.accountCode === "4100")
+            .reduce((sum, item) => sum + item.amount, 0);
+          if (!amount || invoice.total <= 0) continue;
+          const balance = Math.max(0, invoice.total - invoice.paid);
+          restaurant += amount;
+          due += (amount * balance) / invoice.total;
+        }
+        return {
+          ...stay(reservation),
+          restaurant: showRestaurant ? roundMoney(restaurant) : 0,
+          restaurantDue: showRestaurant ? roundMoney(due) : 0,
+        };
+      })
+      .sort((a, b) => b.restaurantDue - a.restaurantDue || a.guestName.localeCompare(b.guestName));
+    const restaurantDue = roundMoney(overnightGuests.reduce((sum, row) => sum + row.restaurantDue, 0));
     const receivables = invoices
       .filter((invoice) => inHotel(invoice, hotelId) && (invoice.status === "unpaid" || invoice.status === "partial"))
       .reduce((sum, invoice) => sum + (invoice.total - invoice.paid), 0);
@@ -114,6 +146,9 @@ export const summary = query({
       payables: showFinancials ? roundMoney(payables) : 0,
       monthlyChart: showFinancials ? monthlyChart : [],
       hotelPerformance: showFinancials ? hotelPerformance : hotelPerformance.map((hotel) => ({ ...hotel, revenue: 0, expenses: 0, profit: 0 })),
+      overnightGuests,
+      overnightCount: overnightGuests.length,
+      restaurantDue,
     };
   },
 });

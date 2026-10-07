@@ -268,6 +268,17 @@ export default defineSchema({
     notes: v.optional(v.string()),
   }).index("by_hotel_date", ["hotelId", "date"]),
 
+  roomCharges: defineTable({
+    reservationId: v.id("reservations"),
+    hotelId: v.id("hotels"),
+    guestId: v.id("guests"),
+    night: v.string(),
+    amount: v.number(),
+    invoiceId: v.id("invoices"),
+    postedTime: v.string(),
+    createdAt: v.number(),
+  }).index("by_reservation", ["reservationId"]).index("by_reservation_night", ["reservationId", "night"]),
+
   auditLogs: defineTable({
     userId: v.optional(v.id("users")),
     userName: v.string(),
