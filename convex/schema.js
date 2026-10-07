@@ -268,6 +268,106 @@ export default defineSchema({
     notes: v.optional(v.string()),
   }).index("by_hotel_date", ["hotelId", "date"]),
 
+  menuCategories: defineTable({
+    hotelId: v.id("hotels"),
+    name: v.string(),
+  }).index("by_hotel", ["hotelId"]),
+
+  menuItems: defineTable({
+    hotelId: v.id("hotels"),
+    categoryId: v.id("menuCategories"),
+    name: v.string(),
+    description: v.string(),
+    price: v.number(),
+    available: v.boolean(),
+    imageUrl: v.string(),
+  }).index("by_hotel", ["hotelId"]).index("by_category", ["categoryId"]),
+
+  restaurantTables: defineTable({
+    hotelId: v.id("hotels"),
+    number: v.string(),
+    seats: v.number(),
+    status: v.string(),
+  }).index("by_hotel", ["hotelId"]),
+
+  restaurantOrders: defineTable({
+    hotelId: v.id("hotels"),
+    number: v.string(),
+    type: v.string(),
+    tableId: v.optional(v.id("restaurantTables")),
+    reservationId: v.optional(v.id("reservations")),
+    guestId: v.optional(v.id("guests")),
+    roomId: v.optional(v.id("rooms")),
+    status: v.string(),
+    notes: v.string(),
+    subtotal: v.number(),
+    postedToBill: v.boolean(),
+    invoiceId: v.optional(v.id("invoices")),
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+  }).index("by_hotel", ["hotelId"]).index("by_status", ["hotelId", "status"]),
+
+  restaurantOrderItems: defineTable({
+    orderId: v.id("restaurantOrders"),
+    menuItemId: v.optional(v.id("menuItems")),
+    name: v.string(),
+    quantity: v.number(),
+    unitPrice: v.number(),
+    amount: v.number(),
+    notes: v.string(),
+  }).index("by_order", ["orderId"]),
+
+  restaurantInventory: defineTable({
+    hotelId: v.id("hotels"),
+    name: v.string(),
+    unit: v.string(),
+    quantity: v.number(),
+    reorderLevel: v.number(),
+  }).index("by_hotel", ["hotelId"]),
+
+  restaurantStockMoves: defineTable({
+    hotelId: v.id("hotels"),
+    itemId: v.id("restaurantInventory"),
+    type: v.string(),
+    quantity: v.number(),
+    date: v.string(),
+    notes: v.string(),
+    userId: v.id("users"),
+    createdAt: v.number(),
+  }).index("by_hotel", ["hotelId"]).index("by_item", ["itemId"]),
+
+  restaurantSuppliers: defineTable({
+    hotelId: v.id("hotels"),
+    name: v.string(),
+    phone: v.string(),
+    address: v.string(),
+    products: v.string(),
+  }).index("by_hotel", ["hotelId"]),
+
+  restaurantPurchases: defineTable({
+    hotelId: v.id("hotels"),
+    supplierId: v.id("restaurantSuppliers"),
+    itemId: v.optional(v.id("restaurantInventory")),
+    date: v.string(),
+    description: v.string(),
+    quantity: v.number(),
+    amount: v.number(),
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+  }).index("by_hotel", ["hotelId"]),
+
+  restaurantExpenses: defineTable({
+    hotelId: v.id("hotels"),
+    date: v.string(),
+    category: v.string(),
+    accountCode: v.string(),
+    amount: v.number(),
+    method: v.string(),
+    description: v.string(),
+    userId: v.id("users"),
+    createdAt: v.number(),
+  }).index("by_hotel", ["hotelId"]),
+
   roomCharges: defineTable({
     reservationId: v.id("reservations"),
     hotelId: v.id("hotels"),

@@ -28,7 +28,7 @@ export default function Dashboard() {
   const data = useQuery(api.dashboard.summary, token ? args : "skip");
 
   if (!data) return <Loading label={t("loading")} />;
-  const housekeeping = user?.role === "housekeeping";
+  const hideMoney = ["housekeeping", "waiter", "kitchen"].includes(user?.role);
   const keys = monthKeys();
   const chart = data.monthlyChart.map((row, index) => ({ ...row, key: keys[index] }));
 
@@ -45,7 +45,7 @@ export default function Dashboard() {
           hint={`${data.available} ${t("available").toLowerCase()}`}
           onClick={() => setDetail({ kind: "occupancy" })}
         />
-        {!housekeeping ? (
+        {!hideMoney ? (
           <ClickStat
             label={t("overnight")}
             value={data.overnightCount}
@@ -118,14 +118,14 @@ export default function Dashboard() {
         </div>
       ) : null}
 
-      {!housekeeping ? (
+      {!hideMoney ? (
         <Panel className="mt-4">
           <h2 className="border-b border-slate-100 px-4 py-3 font-semibold">{t("overnight")}</h2>
           <OvernightList rows={data.overnightGuests || []} empty={t("noResults")} money={money} dueLabel={t("restaurantDue")} />
         </Panel>
       ) : null}
 
-      {!housekeeping ? (
+      {!hideMoney ? (
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <Panel>
             <h2 className="border-b border-slate-100 px-4 py-3 font-semibold">{t("checkIns")}</h2>

@@ -60,7 +60,7 @@ export const summary = query({
       ctx.db.query("invoiceItems").collect(),
     ]);
     const yesterday = addDays(today, -1);
-    const showRestaurant = ["super_admin", "hotel_manager", "accountant", "receptionist"].includes(user.role);
+    const showRestaurant = ["super_admin", "hotel_manager", "accountant", "receptionist", "restaurant_manager"].includes(user.role);
     const overnightGuests = scopedReservations
       .filter((row) => row.checkIn <= yesterday && row.checkOut > yesterday && ["checked_in", "checked_out"].includes(row.status))
       .map((reservation) => {

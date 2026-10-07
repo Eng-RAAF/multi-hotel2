@@ -7,6 +7,9 @@ export const ROLES = [
   "accountant",
   "housekeeping",
   "hr_admin",
+  "restaurant_manager",
+  "waiter",
+  "kitchen",
 ];
 
 export const COMPANY_ROLES = ["super_admin", "accountant", "hr_admin"];

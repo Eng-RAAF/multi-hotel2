@@ -8,6 +8,9 @@ const MATRIX = [
   ["Accountant", "Income, expenses, ledger, receivables, payables, and financial reports"],
   ["Housekeeping", "Room status, cleaning, and maintenance only"],
   ["HR / Admin", "Employees, attendance, and user accounts"],
+  ["Restaurant Manager", "Menu, tables, orders, inventory, suppliers, expenses, and restaurant reports"],
+  ["Waiter", "Tables, food orders, and sending orders to the kitchen"],
+  ["Kitchen Staff", "Kitchen orders: pending, preparing, and ready"],
 ];
 
 export default function Roles() {

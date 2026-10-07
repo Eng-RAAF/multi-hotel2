@@ -26,6 +26,7 @@ import type * as lib_roomCharge from "../lib/roomCharge.js";
 import type * as people from "../people.js";
 import type * as reports from "../reports.js";
 import type * as reservations from "../reservations.js";
+import type * as restaurant from "../restaurant.js";
 import type * as roomCharges from "../roomCharges.js";
 import type * as rooms from "../rooms.js";
 import type * as search from "../search.js";
@@ -58,6 +59,7 @@ declare const fullApi: ApiFromModules<{
   people: typeof people;
   reports: typeof reports;
   reservations: typeof reservations;
+  restaurant: typeof restaurant;
   roomCharges: typeof roomCharges;
   rooms: typeof rooms;
   search: typeof search;

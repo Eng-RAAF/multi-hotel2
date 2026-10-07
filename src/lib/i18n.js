@@ -182,6 +182,18 @@ const en = {
   cashAccounts: "Cash, bank, and mobile money",
   maintenance: "Maintenance",
   cleaning: "Cleaning",
+  navRestaurant: "Restaurant",
+  menu: "Menu",
+  tables: "Tables",
+  orders: "Orders",
+  kitchen: "Kitchen",
+  inventory: "Inventory",
+  restaurantSuppliers: "Suppliers",
+  restaurantExpenses: "Restaurant expenses",
+  restaurantReports: "Restaurant reports",
+  purchases: "Purchases",
+  number: "Number",
+  image: "Image",
 };
 
 const so = {
@@ -295,6 +307,18 @@ const so = {
   present: "Jooga",
   absent: "Maqan",
   leave: "Fasax",
+  navRestaurant: "Maqaayadda",
+  menu: "Liiska cuntada",
+  tables: "Miisaska",
+  orders: "Dalabaadka",
+  kitchen: "Jikada",
+  inventory: "Kaydka",
+  restaurantSuppliers: "Alaab-qeybiyeyaasha",
+  restaurantExpenses: "Kharashaadka maqaayadda",
+  restaurantReports: "Warbixinta maqaayadda",
+  purchases: "Iibsiga",
+  number: "Lambarka",
+  image: "Sawirka",
 };
 
 export function translate(lang, key) {

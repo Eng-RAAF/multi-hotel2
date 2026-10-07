@@ -12,6 +12,8 @@ import {
   FileBarChart,
   FileText,
   IdCard,
+  ChefHat,
+  ClipboardList,
   Landmark,
   LayoutDashboard,
   LineChart,
@@ -24,11 +26,14 @@ import {
   Search,
   Settings,
   Shield,
+  Package,
   Sparkles,
+  Truck,
   TrendingDown,
   TrendingUp,
   UserCog,
   Users,
+  UtensilsCrossed,
   Wallet,
   X,
 } from "lucide-react";
@@ -37,7 +42,7 @@ import { useApp } from "../context/AppContext";
 import { ROLES } from "../lib/catalogs";
 
 const NAV = [
-  { to: "/", label: "dashboard", icon: LayoutDashboard, roles: ["super_admin", "hotel_manager", "receptionist", "accountant", "housekeeping", "hr_admin"] },
+  { to: "/", label: "dashboard", icon: LayoutDashboard, roles: ["super_admin", "hotel_manager", "receptionist", "accountant", "housekeeping", "hr_admin", "restaurant_manager", "waiter", "kitchen"] },
   {
     group: "navHotels",
     items: [
@@ -52,6 +57,19 @@ const NAV = [
       { to: "/reservations", label: "reservations", icon: CalendarDays, roles: ["super_admin", "hotel_manager", "receptionist"] },
       { to: "/guests", label: "guests", icon: Users, roles: ["super_admin", "hotel_manager", "receptionist", "accountant"] },
       { to: "/front-desk", label: "frontDesk", icon: CalendarDays, roles: ["super_admin", "hotel_manager", "receptionist"] },
+    ],
+  },
+  {
+    group: "navRestaurant",
+    items: [
+      { to: "/restaurant/menu", label: "menu", icon: UtensilsCrossed, roles: ["super_admin", "hotel_manager", "restaurant_manager"] },
+      { to: "/restaurant/tables", label: "tables", icon: ClipboardList, roles: ["super_admin", "hotel_manager", "restaurant_manager", "waiter", "receptionist"] },
+      { to: "/restaurant/orders", label: "orders", icon: ClipboardList, roles: ["super_admin", "hotel_manager", "restaurant_manager", "waiter", "receptionist"] },
+      { to: "/restaurant/kitchen", label: "kitchen", icon: ChefHat, roles: ["super_admin", "hotel_manager", "restaurant_manager", "kitchen"] },
+      { to: "/restaurant/inventory", label: "inventory", icon: Package, roles: ["super_admin", "hotel_manager", "restaurant_manager", "kitchen"] },
+      { to: "/restaurant/suppliers", label: "restaurantSuppliers", icon: Truck, roles: ["super_admin", "hotel_manager", "restaurant_manager"] },
+      { to: "/restaurant/expenses", label: "restaurantExpenses", icon: TrendingDown, roles: ["super_admin", "hotel_manager", "restaurant_manager"] },
+      { to: "/restaurant/reports", label: "restaurantReports", icon: FileBarChart, roles: ["super_admin", "hotel_manager", "restaurant_manager", "accountant"] },
     ],
   },
   {

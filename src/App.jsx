@@ -28,6 +28,14 @@ import Employees from "./pages/Employees";
 import Roles from "./pages/Roles";
 import SettingsPage from "./pages/SettingsPage";
 import Audit from "./pages/Audit";
+import MenuPage from "./pages/restaurant/Menu";
+import TablesPage from "./pages/restaurant/Tables";
+import OrdersPage from "./pages/restaurant/Orders";
+import KitchenPage from "./pages/restaurant/Kitchen";
+import InventoryPage from "./pages/restaurant/Inventory";
+import RestaurantSuppliers from "./pages/restaurant/Suppliers";
+import RestaurantExpenses from "./pages/restaurant/Expenses";
+import RestaurantReports from "./pages/restaurant/Reports";
 
 class Boundary extends Component {
   constructor(props) {
@@ -67,6 +75,14 @@ function Shell() {
         <Route path="/reservations" element={<Guard roles={["super_admin", "hotel_manager", "receptionist"]}><Reservations /></Guard>} />
         <Route path="/guests" element={<Guard roles={["super_admin", "hotel_manager", "receptionist", "accountant"]}><Guests /></Guard>} />
         <Route path="/front-desk" element={<Guard roles={["super_admin", "hotel_manager", "receptionist"]}><FrontDesk /></Guard>} />
+        <Route path="/restaurant/menu" element={<Guard roles={["super_admin", "hotel_manager", "restaurant_manager"]}><MenuPage /></Guard>} />
+        <Route path="/restaurant/tables" element={<Guard roles={["super_admin", "hotel_manager", "restaurant_manager", "waiter", "receptionist"]}><TablesPage /></Guard>} />
+        <Route path="/restaurant/orders" element={<Guard roles={["super_admin", "hotel_manager", "restaurant_manager", "waiter", "receptionist"]}><OrdersPage /></Guard>} />
+        <Route path="/restaurant/kitchen" element={<Guard roles={["super_admin", "hotel_manager", "restaurant_manager", "kitchen"]}><KitchenPage /></Guard>} />
+        <Route path="/restaurant/inventory" element={<Guard roles={["super_admin", "hotel_manager", "restaurant_manager", "kitchen"]}><InventoryPage /></Guard>} />
+        <Route path="/restaurant/suppliers" element={<Guard roles={["super_admin", "hotel_manager", "restaurant_manager"]}><RestaurantSuppliers /></Guard>} />
+        <Route path="/restaurant/expenses" element={<Guard roles={["super_admin", "hotel_manager", "restaurant_manager"]}><RestaurantExpenses /></Guard>} />
+        <Route path="/restaurant/reports" element={<Guard roles={["super_admin", "hotel_manager", "restaurant_manager", "accountant"]}><RestaurantReports /></Guard>} />
         <Route path="/invoices" element={<Guard roles={["super_admin", "hotel_manager", "receptionist", "accountant"]}><Invoices /></Guard>} />
         <Route path="/invoices/:invoiceId" element={<Guard roles={["super_admin", "hotel_manager", "receptionist", "accountant"]}><InvoiceDetail /></Guard>} />
         <Route path="/payments" element={<Guard roles={["super_admin", "hotel_manager", "receptionist", "accountant"]}><Payments /></Guard>} />
