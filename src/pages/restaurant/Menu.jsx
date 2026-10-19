@@ -66,7 +66,7 @@ export default function MenuPage() {
       <PageHeader title={t("menu")} action={<Button onClick={() => { setForm({ ...blank(), categoryId: menu.categories[0]?._id || "" }); setOpen(true); }}>{t("create")}</Button>} />
       <ErrorText>{error}</ErrorText>
       {canSwitch ? <p className="mb-3 text-sm text-muted">{hotels.find((hotel) => hotel._id === active)?.name}</p> : null}
-      <form onSubmit={addCategory} className="mb-4 flex gap-2">
+      <form onSubmit={addCategory} className="mb-4 flex flex-wrap gap-2">
         <Input value={category} onChange={(event) => setCategory(event.target.value)} placeholder={t("category")} />
         <Button type="submit">{t("create")}</Button>
       </form>

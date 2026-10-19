@@ -61,13 +61,13 @@ export default function Payables() {
       <PageHeader
         title={t("payables")}
         action={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="secondary" onClick={() => { setSupplier(blankSupplier(hotelId, hotels)); setMode("supplier"); }}>{t("suppliers")}</Button>
             <Button onClick={() => { setBill(blankBill(hotelId !== "all" ? hotelId : hotels[0]?._id)); setMode("bill"); }}>{t("bills")}</Button>
           </div>
         }
       />
-      <div className="mb-4 flex gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         <Button variant={tab === "bills" ? "primary" : "secondary"} onClick={() => setTab("bills")}>{t("bills")}</Button>
         <Button variant={tab === "suppliers" ? "primary" : "secondary"} onClick={() => setTab("suppliers")}>{t("suppliers")}</Button>
       </div>

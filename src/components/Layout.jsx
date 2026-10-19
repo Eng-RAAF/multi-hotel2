@@ -152,12 +152,26 @@ export default function Layout({ children }) {
   const sidebar = (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-3 px-4 py-5">
-        <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand font-bold text-white">M</div>
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand font-bold text-white">H</div>
         <div>
-          <div className="font-extrabold leading-tight">MHMAS</div>
+          <div className="text-sm font-extrabold uppercase leading-tight">Hotel Management System</div>
           <div className="text-xs text-muted">{t("somalia")}</div>
         </div>
       </div>
+      {canSwitch ? (
+        <div className="px-4 pb-4 md:hidden">
+          <select
+            value={hotelId}
+            onChange={(event) => { setHotelId(event.target.value); setOpen(false); }}
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-base"
+          >
+            <option value="all">{t("allHotels")}</option>
+            {hotels.map((hotel) => (
+              <option key={hotel._id} value={hotel._id}>{hotel.name}</option>
+            ))}
+          </select>
+        </div>
+      ) : null}
       <nav className="flex-1 space-y-4 overflow-y-auto px-3 pb-4">
         {NAV.map((entry) => {
           if (entry.to) {
@@ -190,16 +204,16 @@ export default function Layout({ children }) {
   );
 
   return (
-    <div className="flex h-screen bg-canvas text-ink">
+    <div className="flex h-dvh bg-canvas text-ink">
       <aside className="no-print hidden w-72 shrink-0 border-r border-slate-200 bg-white lg:block">{sidebar}</aside>
       {open ? (
         <div className="no-print fixed inset-0 z-40 lg:hidden">
           <button className="absolute inset-0 bg-slate-900/40" onClick={() => setOpen(false)} aria-label="Close menu" />
-          <aside className="relative h-full w-72 bg-white shadow-xl">{sidebar}</aside>
+          <aside className="relative h-full w-72 max-w-[85vw] bg-white shadow-xl">{sidebar}</aside>
         </div>
       ) : null}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="no-print flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3">
+        <header className="no-print flex items-center gap-2 border-b border-slate-200 bg-white px-3 py-3 sm:gap-3 sm:px-4">
           <button className="rounded-lg p-2 hover:bg-slate-100 lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
             {open ? <X size={18} /> : <Menu size={18} />}
           </button>
@@ -209,7 +223,7 @@ export default function Layout({ children }) {
               value={q}
               onChange={(event) => setQ(event.target.value)}
               placeholder={t("searchPlaceholder")}
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm outline-none focus:border-brand focus:bg-white"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-base outline-none sm:text-sm focus:border-brand focus:bg-white"
             />
             {results?.length ? (
               <div className="absolute z-20 mt-1 w-full max-w-md overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
@@ -251,7 +265,7 @@ export default function Layout({ children }) {
             {lang === "en" ? "SO" : "EN"}
           </button>
         </header>
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">{children}</main>
       </div>
     </div>
   );

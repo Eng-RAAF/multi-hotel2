@@ -82,7 +82,7 @@ export default function OrdersPage() {
                 <div className="flex justify-between font-semibold"><span>{t("total")}</span><span>{money(order.subtotal)}</span></div>
               </div>
               {order.notes ? <p className="mt-2 text-xs text-muted">{order.notes}</p> : null}
-              <div className="mt-3 flex gap-2">
+              <div className="mt-3 flex flex-wrap gap-2">
                 {next ? <Button onClick={() => setStatus({ token, orderId: order._id, status: next }).catch((err) => setError(errorMessage(err)))}>{NEXT_LABEL[order.status] || t("save")}</Button> : null}
                 {["pending", "preparing"].includes(order.status) ? <Button variant="secondary" onClick={() => setStatus({ token, orderId: order._id, status: "cancelled" }).catch((err) => setError(errorMessage(err)))}>{t("cancel")}</Button> : null}
               </div>

@@ -45,7 +45,7 @@ export default function InvoiceDetail({ printMode = false }) {
       <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="text-sm font-bold text-brand">MHMAS</div>
+            <div className="text-sm font-bold uppercase text-brand">Hotel Management System</div>
             <h1 className="text-2xl font-bold">{invoice.hotel?.name}</h1>
             <p className="text-sm text-muted">{invoice.hotel?.address}<br />{invoice.hotel?.city} · {invoice.hotel?.phone}</p>
           </div>
@@ -60,7 +60,8 @@ export default function InvoiceDetail({ printMode = false }) {
           <div className="font-semibold">{invoice.billTo}</div>
           {invoice.guest ? <div className="text-muted">{invoice.guest.phone} · {invoice.guest.email}</div> : null}
         </div>
-        <table className="mt-6 w-full text-sm">
+        <div className="mt-6 overflow-x-auto">
+        <table className="w-full min-w-[480px] text-sm">
           <thead>
             <tr className="border-b text-left text-muted">
               <th className="py-2">{t("description")}</th>
@@ -80,6 +81,7 @@ export default function InvoiceDetail({ printMode = false }) {
             ))}
           </tbody>
         </table>
+        </div>
         <div className="ml-auto mt-4 w-full max-w-xs space-y-1 text-sm">
           <Row label={t("subtotal")} value={money(invoice.subtotal)} />
           <Row label={`${t("tax")} (${invoice.taxRate}%)`} value={money(invoice.tax)} />

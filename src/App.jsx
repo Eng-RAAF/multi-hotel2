@@ -50,7 +50,7 @@ class Boundary extends Component {
     return (
       <div className="grid min-h-screen place-items-center bg-canvas p-6">
         <div className="max-w-lg rounded-2xl bg-white p-6 shadow-sm">
-          <h1 className="text-xl font-bold">MHMAS could not reach Convex</h1>
+          <h1 className="text-xl font-bold">Hotel Management System could not reach Convex</h1>
           <p className="mt-2 text-sm text-muted">
             The app is configured for https://focused-wolf-383.convex.cloud. Deploy the functions from the frontend folder with <code>npx convex dev</code>, then reload.
           </p>

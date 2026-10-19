@@ -47,7 +47,7 @@ export default function RestaurantSuppliers() {
 
   return (
     <div>
-      <PageHeader title={t("restaurantSuppliers")} action={<div className="flex gap-2"><Button variant="secondary" onClick={() => setMode("supplier")}>{t("create")}</Button><Button onClick={() => setMode("purchase")}>{t("purchases")}</Button></div>} />
+      <PageHeader title={t("restaurantSuppliers")} action={<div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => setMode("supplier")}>{t("create")}</Button><Button onClick={() => setMode("purchase")}>{t("purchases")}</Button></div>} />
       <ErrorText>{error}</ErrorText>
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel>

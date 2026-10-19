@@ -258,7 +258,7 @@ function Detail({ detail, onClose, args }) {
         report={report}
       />
       <ErrorText>{actionError}</ErrorText>
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         {detail.kind === "stay" && ["pending", "confirmed"].includes(detail.stay?.status) ? (
           <Button onClick={async () => {
             setActionError("");
@@ -474,7 +474,7 @@ function RoomLines({ rooms, empty }) {
             <div className="font-medium">Room {room.number} · {room.typeName}</div>
             <div className="text-xs text-muted">{room.hotelName} · {money(room.price)}</div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Badge value={room.status} />
             <Badge value={room.housekeepingStatus} />
           </div>

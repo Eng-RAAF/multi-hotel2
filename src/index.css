@@ -54,3 +54,199 @@ textarea {
     background: white;
   }
 }
+
+
+
+/* Landing / login page: glass card over the neon hotel photo.
+   --u is one pixel of the 1880×1058 photo as scaled by background-size: cover.
+   On desktop the card sits exactly where the design placed it (x 707–1235,
+   y 192–800), over the spot where the design's own login box was painted out. */
+.landing {
+  --u: max(calc(100vw / 1880), calc(100vh / 1058));
+  position: fixed;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: #050a1a;
+  background-position: center;
+  background-size: cover;
+  font-family: "Segoe UI", var(--font-sans);
+  color: #fff;
+}
+
+.landing-lang {
+  position: fixed;
+  right: 16px;
+  top: 16px;
+  z-index: 2;
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.landing-card {
+  position: absolute;
+  left: calc(50vw - 232.5 * var(--u));
+  top: calc(50vh - 336.5 * var(--u));
+  width: calc(527.5 * var(--u));
+  min-height: calc(607.5 * var(--u));
+  display: flex;
+}
+
+.landing-orb {
+  position: absolute;
+  width: max(calc(135 * var(--u)), 80px);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: radial-gradient(circle at 40% 35%, #b45cff, #9333ea 60%, #7e22ce);
+}
+.landing-orb-top {
+  right: max(calc(-47.5 * var(--u)), -28px);
+  top: max(calc(-36 * var(--u)), -22px);
+}
+.landing-orb-bottom {
+  left: max(calc(-50 * var(--u)), -30px);
+  bottom: max(calc(-26 * var(--u)), -16px);
+}
+
+.landing-panel {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: max(calc(36 * var(--u)), 14px);
+  box-sizing: border-box;
+  padding: max(calc(62 * var(--u)), 24px) max(calc(37 * var(--u)), 18px) max(calc(40 * var(--u)), 20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.06));
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.45);
+}
+
+.landing-title {
+  margin: 0 0 max(calc(8 * var(--u)), 4px);
+  font-size: max(calc(36 * var(--u)), 22px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+}
+
+.landing-panel input,
+.landing-submit {
+  box-sizing: border-box;
+  width: 100%;
+  height: max(calc(80 * var(--u)), 42px);
+  padding: 0 max(calc(18 * var(--u)), 12px);
+  border: 0;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-family: inherit;
+  font-size: max(calc(25 * var(--u)), 15px);
+  font-weight: 600;
+  outline: none;
+}
+.landing-panel input::placeholder {
+  color: #fff;
+}
+.landing-panel input:focus {
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 0 0 2px rgba(180, 92, 255, 0.55);
+}
+.landing-panel input:-webkit-autofill {
+  -webkit-text-fill-color: #fff;
+  transition: background-color 9999s;
+}
+
+.landing-submit {
+  cursor: pointer;
+}
+.landing-submit:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+.landing-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.landing-notice {
+  margin: 0;
+  font-size: max(calc(22 * var(--u)), 13px);
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.85);
+}
+.landing-notice.is-error {
+  color: #fca5a5;
+}
+
+.landing-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: max(calc(10 * var(--u)), 5px);
+  margin: 0;
+  font-size: max(calc(30 * var(--u)), 15px);
+}
+.landing-links button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #fff;
+  font: inherit;
+  font-size: max(calc(22 * var(--u)), 13px);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.landing-links button:hover {
+  color: #d8b4fe;
+}
+
+/* Phones, tablets, short windows and portrait screens: center the card and
+   zoom the photo onto its right-hand hotel (x > 1300), clear of the
+   painted-out middle. */
+@media (max-width: 1023px), (max-height: 640px), (max-aspect-ratio: 4/3) {
+  .landing {
+    display: flex;
+    padding: 64px 28px 48px;
+    box-sizing: border-box;
+    background-size: auto max(100%, 182vw);
+    background-position: right bottom;
+  }
+  .landing-card {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100%;
+    max-width: 380px;
+    min-height: 0;
+    margin: auto;
+  }
+  .landing-panel {
+    gap: 16px;
+    padding: 32px 22px 26px;
+    background: linear-gradient(160deg, rgba(20, 26, 50, 0.55), rgba(20, 26, 50, 0.35));
+  }
+  .landing-title {
+    font-size: clamp(22px, 6.4vw, 28px);
+  }
+  .landing-panel input,
+  .landing-submit {
+    height: 46px;
+    font-size: 16px;
+  }
+  .landing-links,
+  .landing-links button {
+    font-size: 14px;
+  }
+}
