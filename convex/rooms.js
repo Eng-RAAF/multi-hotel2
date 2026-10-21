@@ -20,8 +20,26 @@ export const list = query({
       : await ctx.db.query("rooms").collect();
     const hotels = await ctx.db.query("hotels").collect();
     const names = new Map(hotels.map((hotel) => [hotel._id, hotel.name]));
-    return rooms
-      .map((room) => ({ ...room, hotelName: names.get(room.hotelId) || "" }))
+    // Attach the guest staying in (or booked into) each room so the cards can show who it is for.
+    const withGuests = await Promise.all(
+      rooms.map(async (room) => {
+        const bookings = await ctx.db.query("reservations").withIndex("by_room", (q) => q.eq("roomId", room._id)).collect();
+        const current =
+          bookings.find((row) => row.status === "checked_in") ||
+          bookings
+            .filter((row) => ["pending", "confirmed"].includes(row.status))
+            .sort((a, b) => a.checkIn.localeCompare(b.checkIn))[0];
+        const guest = current ? await ctx.db.get(current.guestId) : null;
+        return {
+          ...room,
+          hotelName: names.get(room.hotelId) || "",
+          currentGuest: current
+            ? { name: guest?.fullName || "", checkIn: current.checkIn, checkOut: current.checkOut, status: current.status }
+            : null,
+        };
+      }),
+    );
+    return withGuests
       .sort((a, b) => a.hotelName.localeCompare(b.hotelName) || a.number.localeCompare(b.number, undefined, { numeric: true }));
   },
 });

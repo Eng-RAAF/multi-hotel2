@@ -199,6 +199,11 @@ const en = {
   purchases: "Purchases",
   number: "Number",
   image: "Image",
+  allRooms: "All rooms",
+  roomCards: "Cards",
+  roomTable: "Table",
+  bookedFor: "Booked for",
+  readyToSell: "Ready for guests",
 };
 
 const so = {
@@ -329,6 +334,11 @@ const so = {
   purchases: "Iibsiga",
   number: "Lambarka",
   image: "Sawirka",
+  allRooms: "Dhammaan qolalka",
+  roomCards: "Kaararka",
+  roomTable: "Jadwal",
+  bookedFor: "Loo qabtay",
+  readyToSell: "Diyaar u ah martida",
 };
 
 export function translate(lang, key) {
