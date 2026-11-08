@@ -95,6 +95,32 @@ export default defineSchema({
     .index("by_guest", ["guestId"])
     .index("by_room", ["roomId"]),
 
+  // Belongings a staying guest leaves with the hotel (luggage room, safe, etc.).
+  guestItems: defineTable({
+    hotelId: v.id("hotels"),
+    guestId: v.id("guests"),
+    reservationId: v.optional(v.id("reservations")),
+    roomNumber: v.string(),
+    tagNumber: v.string(),
+    description: v.string(),
+    category: v.string(),
+    // What the item actually is when category is "other".
+    categoryLabel: v.optional(v.string()),
+    // Reference photo taken at drop-off, checked when the guest collects.
+    photoId: v.optional(v.id("_storage")),
+    quantity: v.number(),
+    location: v.string(),
+    notes: v.string(),
+    status: v.string(),
+    storedAt: v.number(),
+    storedByName: v.string(),
+    returnedAt: v.optional(v.number()),
+    returnedByName: v.optional(v.string()),
+    returnedTo: v.optional(v.string()),
+  })
+    .index("by_hotel", ["hotelId"])
+    .index("by_guest", ["guestId"]),
+
   customers: defineTable({
     hotelId: v.id("hotels"),
     name: v.string(),

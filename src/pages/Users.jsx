@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAction, useQuery } from "convex/react";
+import { useAction, useQuery } from "../lib/offline";
 import { api } from "../lib/api";
 import { useApp } from "../context/AppContext";
 import { ROLES } from "../lib/catalogs";

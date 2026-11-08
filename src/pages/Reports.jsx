@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useQuery } from "convex/react";
+import { useQuery } from "../lib/offline";
 import { api } from "../lib/api";
 import { useScope } from "../context/AppContext";
 import { monthStart, todayISO } from "../lib/format";

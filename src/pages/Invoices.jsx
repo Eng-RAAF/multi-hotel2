@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery } from "../lib/offline";
 import { api } from "../lib/api";
 import { useScope } from "../context/AppContext";
 import { INCOME_ACCOUNTS } from "../lib/catalogs";

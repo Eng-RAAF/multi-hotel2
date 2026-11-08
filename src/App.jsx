@@ -9,6 +9,7 @@ import Rooms from "./pages/Rooms";
 import Housekeeping from "./pages/Housekeeping";
 import Reservations from "./pages/Reservations";
 import Guests from "./pages/Guests";
+import GuestItems from "./pages/GuestItems";
 import FrontDesk from "./pages/FrontDesk";
 import Invoices from "./pages/Invoices";
 import InvoiceDetail from "./pages/InvoiceDetail";
@@ -62,9 +63,10 @@ class Boundary extends Component {
 }
 
 function Shell() {
-  const { token, ready, t } = useApp();
+  const { token, ready, user, t } = useApp();
   if (!token) return <Navigate to="/login" replace />;
-  if (!ready) return <div className="grid min-h-screen place-items-center text-sm text-muted">{t("loading")}…</div>;
+  // user is null while an expired/invalid token is being cleared; wait for the redirect to /login.
+  if (!ready || !user) return <div className="grid min-h-screen place-items-center text-sm text-muted">{t("loading")}…</div>;
   return (
     <Layout>
       <Routes>
@@ -74,6 +76,7 @@ function Shell() {
         <Route path="/housekeeping" element={<Guard roles={["super_admin", "hotel_manager", "receptionist", "housekeeping"]}><Housekeeping /></Guard>} />
         <Route path="/reservations" element={<Guard roles={["super_admin", "hotel_manager", "receptionist"]}><Reservations /></Guard>} />
         <Route path="/guests" element={<Guard roles={["super_admin", "hotel_manager", "receptionist", "accountant"]}><Guests /></Guard>} />
+        <Route path="/guest-items" element={<Guard roles={["super_admin", "hotel_manager", "receptionist"]}><GuestItems /></Guard>} />
         <Route path="/front-desk" element={<Guard roles={["super_admin", "hotel_manager", "receptionist"]}><FrontDesk /></Guard>} />
         <Route path="/restaurant/menu" element={<Guard roles={["super_admin", "hotel_manager", "restaurant_manager"]}><MenuPage /></Guard>} />
         <Route path="/restaurant/tables" element={<Guard roles={["super_admin", "hotel_manager", "restaurant_manager", "waiter", "receptionist"]}><TablesPage /></Guard>} />

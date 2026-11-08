@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { clearQueryCache, useMutation, useQuery } from "../lib/offline";
 import { api } from "../lib/api";
 import { money as formatMoney } from "../lib/format";
 import { translate } from "../lib/i18n";
@@ -11,8 +11,9 @@ export function AppProvider({ children }) {
   const [lang, setLangState] = useState(() => localStorage.getItem("mhmas_lang") || "en");
   const [hotelId, setHotelId] = useState("all");
   const me = useQuery(api.auth.me, token ? { token } : "skip");
-  const hotels = useQuery(api.hotels.options, token ? { token } : "skip");
-  const settings = useQuery(api.settings.get, token ? { token } : "skip");
+  const authenticated = Boolean(token && me);
+  const hotels = useQuery(api.hotels.options, authenticated ? { token } : "skip");
+  const settings = useQuery(api.settings.get, authenticated ? { token } : "skip");
   const logout = useMutation(api.auth.logout);
 
   useEffect(() => {
@@ -60,6 +61,8 @@ export function AppProvider({ children }) {
           }
         }
         localStorage.removeItem("mhmas_token");
+        // Don't leave this user's saved data on a shared device. Unsent changes stay in the outbox.
+        await clearQueryCache();
         setToken("");
         setHotelId("all");
       },

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useQuery } from "convex/react";
+import { discardFailed, retryFailed, useOfflineStatus, useQuery } from "../lib/offline";
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -27,6 +27,7 @@ import {
   Settings,
   Shield,
   Package,
+  Luggage,
   Sparkles,
   Truck,
   TrendingDown,
@@ -35,6 +36,8 @@ import {
   Users,
   UtensilsCrossed,
   Wallet,
+  RefreshCw,
+  WifiOff,
   X,
 } from "lucide-react";
 import { api } from "../lib/api";
@@ -56,6 +59,7 @@ const NAV = [
     items: [
       { to: "/reservations", label: "reservations", icon: CalendarDays, roles: ["super_admin", "hotel_manager", "receptionist"] },
       { to: "/guests", label: "guests", icon: Users, roles: ["super_admin", "hotel_manager", "receptionist", "accountant"] },
+      { to: "/guest-items", label: "guestItems", icon: Luggage, roles: ["super_admin", "hotel_manager", "receptionist"] },
       { to: "/front-desk", label: "frontDesk", icon: CalendarDays, roles: ["super_admin", "hotel_manager", "receptionist"] },
     ],
   },
@@ -175,9 +179,9 @@ export default function Layout({ children }) {
       <nav className="flex-1 space-y-4 overflow-y-auto px-3 pb-4">
         {NAV.map((entry) => {
           if (entry.to) {
-            return entry.roles.includes(user.role) ? <Item key={entry.to} item={entry} onNavigate={() => setOpen(false)} /> : null;
+            return entry.roles.includes(user?.role) ? <Item key={entry.to} item={entry} onNavigate={() => setOpen(false)} /> : null;
           }
-          const items = entry.items.filter((item) => item.roles.includes(user.role));
+          const items = entry.items.filter((item) => item.roles.includes(user?.role));
           if (!items.length) return null;
           return (
             <div key={entry.group}>
@@ -193,8 +197,8 @@ export default function Layout({ children }) {
       </nav>
       <div className="border-t border-slate-100 p-3">
         <div className="rounded-xl bg-slate-50 px-3 py-3">
-          <div className="text-sm font-semibold">{user.name}</div>
-          <div className="text-xs text-muted">{role}{user.hotelName ? ` · ${user.hotelName}` : ""}</div>
+          <div className="text-sm font-semibold">{user?.name}</div>
+          <div className="text-xs text-muted">{role}{user?.hotelName ? ` · ${user.hotelName}` : ""}</div>
           <button onClick={signOut} className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-ink">
             <LogOut size={15} /> {t("signOut")}
           </button>
@@ -265,8 +269,44 @@ export default function Layout({ children }) {
             {lang === "en" ? "SO" : "EN"}
           </button>
         </header>
+        <OfflineBanner />
         <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">{children}</main>
       </div>
+    </div>
+  );
+}
+
+function OfflineBanner() {
+  const { t } = useApp();
+  const { offline, syncing, pending, failed } = useOfflineStatus();
+  if (!offline && !syncing && !pending && !failed.length) return null;
+  return (
+    <div className="no-print space-y-1 border-b border-slate-200 px-3 py-2 text-sm sm:px-4">
+      {offline ? (
+        <div className="flex items-center gap-2 font-medium text-amber-700">
+          <WifiOff size={15} className="shrink-0" /> {t("offlineNotice")}
+        </div>
+      ) : null}
+      {pending ? (
+        <div className="flex items-center gap-2 text-slate-600">
+          <RefreshCw size={14} className={`shrink-0 ${syncing ? "animate-spin" : ""}`} />
+          {syncing && !offline ? `${t("syncing")}… ` : ""}{pending} {t("offlinePending")}
+        </div>
+      ) : null}
+      {failed.length ? (
+        <div className="text-danger">
+          <div className="flex flex-wrap items-center gap-2 font-medium">
+            {failed.length} {t("syncFailed")}
+            <button onClick={retryFailed} className="rounded border border-slate-200 bg-white px-2 py-0.5 text-xs text-ink">{t("retry")}</button>
+            <button onClick={discardFailed} className="rounded border border-slate-200 bg-white px-2 py-0.5 text-xs text-ink">{t("discard")}</button>
+          </div>
+          <ul className="mt-1 list-disc pl-5 text-xs">
+            {failed.map((item) => (
+              <li key={item.id}>{item.name.replace(":", " · ")} — {item.error}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -274,7 +314,7 @@ export default function Layout({ children }) {
 export function Guard({ roles, children }) {
   const { user, t, ready } = useApp();
   if (!ready || !user) return <div className="p-8 text-sm text-muted">{t("loading")}…</div>;
-  if (roles && !roles.includes(user.role)) {
+  if (roles && !roles.includes(user?.role)) {
     return <div className="rounded-2xl bg-white p-8 text-sm text-muted shadow-sm">{t("noAccess")}</div>;
   }
   return children;

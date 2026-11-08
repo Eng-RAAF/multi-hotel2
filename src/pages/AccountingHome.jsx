@@ -1,4 +1,4 @@
-import { useQuery } from "convex/react";
+import { useQuery } from "../lib/offline";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { useScope } from "../context/AppContext";

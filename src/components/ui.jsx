@@ -83,6 +83,8 @@ export function Badge({ value }) {
     leave: "bg-amber-50 text-amber-800",
     refund: "bg-rose-50 text-rose-700",
     payment: "bg-green-50 text-green-700",
+    stored: "bg-amber-50 text-amber-800",
+    returned: "bg-slate-100 text-slate-600",
   };
   const label = String(value || "—").replaceAll("_", " ");
   return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${styles[value] || "bg-slate-100 text-slate-600"}`}>{label}</span>;

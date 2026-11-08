@@ -15,6 +15,7 @@ import type * as authNode from "../authNode.js";
 import type * as billing from "../billing.js";
 import type * as crons from "../crons.js";
 import type * as dashboard from "../dashboard.js";
+import type * as guestItems from "../guestItems.js";
 import type * as guests from "../guests.js";
 import type * as hotels from "../hotels.js";
 import type * as http from "../http.js";
@@ -48,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   billing: typeof billing;
   crons: typeof crons;
   dashboard: typeof dashboard;
+  guestItems: typeof guestItems;
   guests: typeof guests;
   hotels: typeof hotels;
   http: typeof http;

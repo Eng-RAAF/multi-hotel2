@@ -1,4 +1,4 @@
-import { useQuery } from "convex/react";
+import { useQuery } from "../lib/offline";
 import { api } from "../lib/api";
 import { useScope } from "../context/AppContext";
 import { Empty, Loading, PageHeader, Panel, Stat, Table } from "../components/ui";

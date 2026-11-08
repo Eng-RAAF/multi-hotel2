@@ -2,14 +2,18 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import App from "./App";
+import { initOffline } from "./lib/offline";
 import "./index.css";
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
 
-createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <ConvexProvider client={convex}>
-      <App />
-    </ConvexProvider>
-  </StrictMode>,
-);
+// Load data saved on this device first, so the app can open with no internet.
+initOffline(convex).finally(() => {
+  createRoot(document.getElementById("root")).render(
+    <StrictMode>
+      <ConvexProvider client={convex}>
+        <App />
+      </ConvexProvider>
+    </StrictMode>,
+  );
+});

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery } from "../../lib/offline";
 import { api } from "../../lib/api";
 import { useScope } from "../../context/AppContext";
 import { METHODS } from "../../lib/catalogs";

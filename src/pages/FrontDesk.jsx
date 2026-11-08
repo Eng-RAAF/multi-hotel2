@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery } from "../lib/offline";
 import { useLocation, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useScope } from "../context/AppContext";
@@ -50,7 +50,8 @@ export default function FrontDesk() {
   const desk = useQuery(api.reservations.desk, token ? args : "skip");
   const checkIn = useMutation(api.reservations.checkIn);
   const checkOut = useMutation(api.reservations.checkOut);
-  const saveReservation = useMutation(api.reservations.save);
+  // Walk-in checks in using the new reservation's id, so it can't be queued offline.
+  const saveReservation = useMutation(api.reservations.save, { offline: false });
   const [stay, setStay] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentEdited, setPaymentEdited] = useState(false);
