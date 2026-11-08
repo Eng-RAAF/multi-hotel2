@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "../lib/offline";
 import { Link, useNavigate } from "react-router-dom";
+import { BedDouble, CalendarDays, LayoutGrid, Luggage, Wallet } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { api } from "../lib/api";
 import { useScope } from "../context/AppContext";
@@ -20,57 +21,120 @@ const PAGE_ROLES = {
   "/reports/profit-loss": ["super_admin", "hotel_manager", "accountant"],
 };
 
+const STORAGE_ROLES = ["super_admin", "hotel_manager", "receptionist"];
+const TAB_KEY = "mhmas_dashboard_tab";
+
+function readTab() {
+  try {
+    return localStorage.getItem(TAB_KEY) || "overview";
+  } catch {
+    return "overview";
+  }
+}
+
 export default function Dashboard() {
   const { t, token, money, user, hotelId, setHotelId, canSwitch } = useScope();
   const [detail, setDetail] = useState(null);
+  const [tab, setTabState] = useState(readTab);
   const args = { token };
   if (hotelId && hotelId !== "all") args.hotelId = hotelId;
   const data = useQuery(api.dashboard.summary, token ? args : "skip");
+  const hideMoney = ["housekeeping", "waiter", "kitchen"].includes(user?.role);
+  const canStorage = STORAGE_ROLES.includes(user?.role);
+
+  const tabs = [
+    { id: "overview", label: t("overview"), icon: LayoutGrid },
+    { id: "rooms", label: t("rooms"), icon: BedDouble },
+    !hideMoney && { id: "frontDesk", label: t("frontDesk"), icon: CalendarDays },
+    data?.showFinancials && { id: "finance", label: t("finance"), icon: Wallet },
+    canStorage && { id: "storage", label: t("guestItems"), icon: Luggage },
+  ].filter(Boolean);
+  // A remembered tab may not exist for this role (or before data loads); fall back to the overview.
+  const active = tabs.some((item) => item.id === tab) ? tab : "overview";
+  const show = (id) => active === "overview" || active === id;
+  const setTab = (id) => {
+    setTabState(id);
+    try {
+      localStorage.setItem(TAB_KEY, id);
+    } catch {
+      /* storage unavailable: selection just isn't remembered */
+    }
+  };
 
   if (!data) return <Loading label={t("loading")} />;
-  const hideMoney = ["housekeeping", "waiter", "kitchen"].includes(user?.role);
   const keys = monthKeys();
   const chart = data.monthlyChart.map((row, index) => ({ ...row, key: keys[index] }));
+  const roomStats = (
+    <>
+      <ClickStat label={t("allHotels")} value={data.hotels} onClick={() => setDetail({ kind: "hotels" })} />
+      <ClickStat label={t("rooms")} value={data.rooms} onClick={() => setDetail({ kind: "rooms" })} />
+      <ClickStat label={t("occupied")} value={data.occupied} onClick={() => setDetail({ kind: "occupied" })} />
+      <ClickStat
+        label={t("occupancy")}
+        value={`${data.occupancy}%`}
+        hint={`${data.available} ${t("available").toLowerCase()}`}
+        onClick={() => setDetail({ kind: "occupancy" })}
+      />
+    </>
+  );
+  const housekeepingStats = (
+    <>
+      <ClickStat label={t("cleaning")} value={data.cleaning} onClick={() => setDetail({ kind: "cleaning" })} />
+      <ClickStat label={t("maintenance")} value={data.maintenance} onClick={() => setDetail({ kind: "maintenance" })} />
+    </>
+  );
+  const overnightStat = (
+    <ClickStat
+      label={t("overnight")}
+      value={data.overnightCount}
+      hint={`${t("restaurantDue")} · ${money(data.restaurantDue)}`}
+      onClick={() => setDetail({ kind: "overnight", rows: data.overnightGuests })}
+    />
+  );
+  const moneyStats = (
+    <>
+      <ClickStat label={t("todayRevenue")} value={money(data.todayRevenue)} onClick={() => setDetail({ kind: "today" })} />
+      <ClickStat label={t("monthlyRevenue")} value={money(data.monthlyRevenue)} onClick={() => setDetail({ kind: "month", monthKey: keys[keys.length - 1], to: todayISO() })} />
+      <ClickStat label={t("expenses")} value={money(data.monthlyExpenses)} onClick={() => setDetail({ kind: "expenses", monthKey: keys[keys.length - 1], to: todayISO() })} />
+      <ClickStat label={t("profit")} value={money(data.profit)} onClick={() => setDetail({ kind: "profit", monthKey: keys[keys.length - 1], to: todayISO() })} />
+      <ClickStat label={t("receivables")} value={money(data.receivables)} onClick={() => setDetail({ kind: "receivables" })} />
+      <ClickStat label={t("payables")} value={money(data.payables)} onClick={() => setDetail({ kind: "payables" })} />
+    </>
+  );
 
   return (
     <div>
       <PageHeader title={t("dashboard")} subtitle={user?.hotelName || t("company")} />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <ClickStat label={t("allHotels")} value={data.hotels} onClick={() => setDetail({ kind: "hotels" })} />
-        <ClickStat label={t("rooms")} value={data.rooms} onClick={() => setDetail({ kind: "rooms" })} />
-        <ClickStat label={t("occupied")} value={data.occupied} onClick={() => setDetail({ kind: "occupied" })} />
-        <ClickStat
-          label={t("occupancy")}
-          value={`${data.occupancy}%`}
-          hint={`${data.available} ${t("available").toLowerCase()}`}
-          onClick={() => setDetail({ kind: "occupancy" })}
-        />
-        {!hideMoney ? (
-          <ClickStat
-            label={t("overnight")}
-            value={data.overnightCount}
-            hint={`${t("restaurantDue")} · ${money(data.restaurantDue)}`}
-            onClick={() => setDetail({ kind: "overnight", rows: data.overnightGuests })}
-          />
-        ) : null}
-        {data.showFinancials ? (
-          <>
-            <ClickStat label={t("todayRevenue")} value={money(data.todayRevenue)} onClick={() => setDetail({ kind: "today" })} />
-            <ClickStat label={t("monthlyRevenue")} value={money(data.monthlyRevenue)} onClick={() => setDetail({ kind: "month", monthKey: keys[keys.length - 1], to: todayISO() })} />
-            <ClickStat label={t("expenses")} value={money(data.monthlyExpenses)} onClick={() => setDetail({ kind: "expenses", monthKey: keys[keys.length - 1], to: todayISO() })} />
-            <ClickStat label={t("profit")} value={money(data.profit)} onClick={() => setDetail({ kind: "profit", monthKey: keys[keys.length - 1], to: todayISO() })} />
-            <ClickStat label={t("receivables")} value={money(data.receivables)} onClick={() => setDetail({ kind: "receivables" })} />
-            <ClickStat label={t("payables")} value={money(data.payables)} onClick={() => setDetail({ kind: "payables" })} />
-          </>
-        ) : (
-          <>
-            <ClickStat label={t("cleaning")} value={data.cleaning} onClick={() => setDetail({ kind: "cleaning" })} />
-            <ClickStat label={t("maintenance")} value={data.maintenance} onClick={() => setDetail({ kind: "maintenance" })} />
-          </>
-        )}
+      <div role="tablist" aria-label={t("dashboard")} className="-mx-3 mb-4 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">
+        {tabs.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={active === id}
+            onClick={() => setTab(id)}
+            className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+              active === id ? "border-brand bg-brand text-white shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+            }`}
+          >
+            <Icon size={16} /> {label}
+          </button>
+        ))}
       </div>
 
-      {data.showFinancials ? (
+      {active === "overview" ? (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {roomStats}
+          {!hideMoney ? overnightStat : null}
+          {data.showFinancials ? moneyStats : housekeepingStats}
+        </div>
+      ) : null}
+      {active === "rooms" ? <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{roomStats}{housekeepingStats}</div> : null}
+      {active === "frontDesk" ? <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{overnightStat}</div> : null}
+      {active === "finance" ? <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{moneyStats}</div> : null}
+      {active === "storage" ? <StoragePanel args={args} /> : null}
+
+      {data.showFinancials && show("finance") ? (
         <div className="mt-4 grid gap-4 xl:grid-cols-5">
           <Panel className="p-4 xl:col-span-3">
             <h2 className="mb-3 font-semibold">{t("monthlyRevenue")}</h2>
@@ -118,14 +182,14 @@ export default function Dashboard() {
         </div>
       ) : null}
 
-      {!hideMoney ? (
+      {!hideMoney && show("frontDesk") ? (
         <Panel className="mt-4">
           <h2 className="border-b border-slate-100 px-4 py-3 font-semibold">{t("overnight")}</h2>
           <OvernightList rows={data.overnightGuests || []} empty={t("noResults")} money={money} dueLabel={t("restaurantDue")} />
         </Panel>
       ) : null}
 
-      {!hideMoney ? (
+      {!hideMoney && show("frontDesk") ? (
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <Panel>
             <h2 className="border-b border-slate-100 px-4 py-3 font-semibold">{t("checkIns")}</h2>
@@ -139,6 +203,48 @@ export default function Dashboard() {
       ) : null}
 
       {detail ? <Detail detail={detail} onClose={() => setDetail(null)} args={args} /> : null}
+    </div>
+  );
+}
+
+function StoragePanel({ args }) {
+  const { t } = useScope();
+  const rows = useQuery(api.guestItems.list, args.token ? args : "skip");
+  if (!rows) return <Loading label={t("loading")} />;
+  const stored = rows.filter((row) => row.status === "stored");
+  const left = stored.filter((row) => row.guestLeft);
+  const today = new Date().toDateString();
+  const returnedToday = rows.filter((row) => row.returnedAt && new Date(row.returnedAt).toDateString() === today);
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Stat label={t("itemsInStorage")} value={stored.reduce((sum, row) => sum + row.quantity, 0)} hint={`${stored.length} ${t("tags")}`} />
+        <Stat label={t("guestsWithItems")} value={new Set(stored.map((row) => row.guestId)).size} />
+        <Stat label={t("guestLeftItems")} value={left.length} className={left.length ? "ring-1 ring-amber-300" : ""} />
+        <Stat label={t("returnedToday")} value={returnedToday.length} />
+      </div>
+      <Panel>
+        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+          <h2 className="font-semibold">{t("inStorage")}</h2>
+          <Link to="/guest-items"><Button variant="secondary">{t("view")}</Button></Link>
+        </div>
+        {stored.length ? (
+          <div className="divide-y divide-slate-100">
+            {stored.slice(0, 10).map((row) => (
+              <div key={row._id} className="flex items-center gap-3 px-4 py-3 text-sm">
+                {row.photoUrl ? <img src={row.photoUrl} alt="" loading="lazy" className="h-10 w-10 shrink-0 rounded-lg border border-slate-200 object-cover" /> : null}
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium">{row.quantity} × {row.description}</div>
+                  <div className="text-xs text-muted">
+                    {row.tagNumber} · {row.guestName}{row.roomNumber ? ` · ${t("room")} ${row.roomNumber}` : ""}{row.location ? ` · ${row.location}` : ""}
+                  </div>
+                </div>
+                {row.guestLeft ? <span className="shrink-0 text-xs font-semibold text-amber-700">{t("guestCheckedOut")}</span> : null}
+              </div>
+            ))}
+          </div>
+        ) : <div className="px-4 py-8 text-sm text-muted">{t("noResults")}</div>}
+      </Panel>
     </div>
   );
 }

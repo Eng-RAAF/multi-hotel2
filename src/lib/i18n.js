@@ -249,6 +249,8 @@ const en = {
   noPhotoTaken: "No photo was taken when this item was stored",
   photoMustBeImage: "Please choose an image file",
   photoUploadFailed: "The photo could not be uploaded. Check the connection and try again",
+  finance: "Finance",
+  returnedToday: "Returned today",
 };
 
 const so = {
@@ -429,6 +431,8 @@ const so = {
   noPhotoTaken: "Sawir lama qaadin markii alaabtan la kaydiyay",
   photoMustBeImage: "Fadlan dooro fayl sawir ah",
   photoUploadFailed: "Sawirka lama soo gelin karin. Hubi internetka oo isku day mar kale",
+  finance: "Maaliyadda",
+  returnedToday: "Maanta la celiyay",
 };
 
 export function translate(lang, key) {
