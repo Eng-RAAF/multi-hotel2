@@ -53,6 +53,10 @@ export function AppProvider({ children }) {
         setToken(nextToken);
       },
       async signOut() {
+        // Drop the token before ending the session: live queries still using it would throw once it's deleted.
+        localStorage.removeItem("mhmas_token");
+        setToken("");
+        setHotelId("all");
         if (token) {
           try {
             await logout({ token });
@@ -60,11 +64,8 @@ export function AppProvider({ children }) {
             /* session may already be gone */
           }
         }
-        localStorage.removeItem("mhmas_token");
         // Don't leave this user's saved data on a shared device. Unsent changes stay in the outbox.
         await clearQueryCache();
-        setToken("");
-        setHotelId("all");
       },
     };
   }, [token, me, hotels, hotelId, lang, settings, logout]);

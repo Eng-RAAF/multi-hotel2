@@ -213,9 +213,11 @@ export const listOrders = query({
     const tables = await ctx.db.query("restaurantTables").collect();
     const rooms = await ctx.db.query("rooms").collect();
     const guests = await ctx.db.query("guests").collect();
+    const users = await ctx.db.query("users").collect();
     const tableName = new Map(tables.map((table) => [table._id, table.number]));
     const roomName = new Map(rooms.map((room) => [room._id, room.number]));
     const guestName = new Map(guests.map((guest) => [guest._id, guest.fullName]));
+    const placedBy = new Map(users.map((row) => [row._id, row.name]));
     return orders
       .map((order) => ({
         ...order,
@@ -223,6 +225,7 @@ export const listOrders = query({
         tableNumber: order.tableId ? tableName.get(order.tableId) || "" : "",
         roomNumber: order.roomId ? roomName.get(order.roomId) || "" : "",
         guestName: order.guestId ? guestName.get(order.guestId) || "" : "",
+        placedByName: placedBy.get(order.createdBy) || "",
       }))
       .sort((a, b) => b.createdAt - a.createdAt);
   },

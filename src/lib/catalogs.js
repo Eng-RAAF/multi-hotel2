@@ -46,5 +46,5 @@ export const ROLES = [
   { id: "hr_admin", label: "HR / Admin" },
   { id: "restaurant_manager", label: "Restaurant Manager" },
   { id: "waiter", label: "Waiter" },
-  { id: "kitchen", label: "Kitchen Staff" },
+  { id: "kitchen", label: "Cook" },
 ];

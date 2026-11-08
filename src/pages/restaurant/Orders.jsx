@@ -8,7 +8,7 @@ import { Badge, Button, Empty, ErrorText, Field, Input, Loading, Modal, PageHead
 const NEXT_LABEL = { pending: "Send to kitchen", preparing: "Preparing", ready: "Mark served", served: "Complete" };
 
 export default function OrdersPage() {
-  const { t, token, money, hotelId, hotels } = useScope();
+  const { t, token, money, hotelId, hotels, user, signOut } = useScope();
   const active = hotelId !== "all" ? hotelId : hotels[0]?._id;
   const args = token && active ? { token, hotelId: active } : "skip";
   const orders = useQuery(api.restaurant.listOrders, args);
@@ -45,8 +45,10 @@ export default function OrdersPage() {
       const payload = { token, hotelId: active, type: form.type, notes: form.notes, items: form.items };
       if (form.type === "dine_in") payload.tableId = form.tableId;
       if (form.type === "room") payload.reservationId = form.reservationId;
-      await create(payload);
+      const orderId = await create(payload);
       setOpen(false);
+      // Offline the order is only queued (no id) and signing back in needs the server, so stay signed in.
+      if (user?.role === "waiter" && orderId) await signOut();
     } catch (err) {
       setError(errorMessage(err));
     }
@@ -69,6 +71,7 @@ export default function OrdersPage() {
                     {order.roomNumber ? `Room ${order.roomNumber} · ${order.guestName}` : ""}
                     {order.type === "takeaway" ? "Takeaway" : ""}
                   </div>
+                  {order.placedByName ? <div className="text-xs text-muted">Placed by {order.placedByName}</div> : null}
                 </div>
                 <Badge value={order.status} />
               </div>

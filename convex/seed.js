@@ -12,7 +12,15 @@ const HOTELS = [
   { name: "Kismayo Beach Hotel", city: "Kismayo", address: "Lido Beach Road", phone: "+252 61 800 5005", email: "kismayo@mhmas.so" },
 ];
 
+const RESTAURANT_STAFF = [
+  { name: "Liban Ahmed", email: "waiter1@mhmas.so", role: "waiter", hotelIndex: 0 },
+  { name: "Ifrah Said", email: "waiter2@mhmas.so", role: "waiter", hotelIndex: 0 },
+  { name: "Yusuf Farah", email: "waiter3@mhmas.so", role: "waiter", hotelIndex: 0 },
+  { name: "Maryan Ismail", email: "cook@mhmas.so", role: "kitchen", hotelIndex: 0 },
+];
+
 const USERS = [
+  ...RESTAURANT_STAFF,
   { name: "Amina Yusuf", email: "admin@mhmas.so", role: "super_admin" },
   { name: "Hassan Ali", email: "manager@mhmas.so", role: "hotel_manager", hotelIndex: 0 },
   { name: "Hodan Mohamed", email: "reception@mhmas.so", role: "receptionist", hotelIndex: 0 },
@@ -102,6 +110,34 @@ async function bookExpense(ctx, { hotelId, date, accountCode, amount, descriptio
     ],
   });
 }
+
+// For databases seeded before these accounts existed. Safe to run more than once.
+export const addRestaurantStaff = internalMutation({
+  args: { hashes: v.array(v.object({ email: v.string(), hash: v.string() })) },
+  handler: async (ctx, args) => {
+    const hotel = await ctx.db.query("hotels").first();
+    if (!hotel) throw new ConvexError("Add a hotel first");
+    const hashMap = new Map(args.hashes.map((row) => [row.email, row.hash]));
+    const added = [];
+    for (const spec of RESTAURANT_STAFF) {
+      const existing = await ctx.db.query("users").withIndex("by_email", (q) => q.eq("email", spec.email)).unique();
+      if (existing) continue;
+      const passwordHash = hashMap.get(spec.email);
+      if (!passwordHash) throw new ConvexError(`Missing password hash for ${spec.email}`);
+      await ctx.db.insert("users", {
+        name: spec.name,
+        email: spec.email,
+        passwordHash,
+        role: spec.role,
+        hotelId: hotel._id,
+        active: true,
+        createdAt: Date.now(),
+      });
+      added.push(spec.email);
+    }
+    return { hotel: hotel.name, added };
+  },
+});
 
 export const run = internalMutation({
   args: { hashes: v.array(v.object({ email: v.string(), hash: v.string() })) },

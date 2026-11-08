@@ -38,6 +38,7 @@ export default function KitchenPage() {
                   <Badge value={order.type} />
                 </div>
                 <div className="text-xs text-muted">{order.tableNumber ? `Table ${order.tableNumber}` : order.roomNumber ? `Room ${order.roomNumber}` : "Takeaway"}</div>
+                {order.placedByName ? <div className="text-xs text-muted">Placed by {order.placedByName}</div> : null}
                 <ul className="mt-2 space-y-1">
                   {order.items.map((item) => <li key={item._id}>{item.quantity} × {item.name}{item.notes ? ` · ${item.notes}` : ""}</li>)}
                 </ul>
